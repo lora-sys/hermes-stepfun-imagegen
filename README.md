@@ -163,6 +163,117 @@ image_gen:
 
 ## Troubleshooting
 
+### My usage is billing my cash balance, not my Step Plan credit
+
+**Symptom:** you see image-edit calls on the [StepFun "账户余额" page](https://platform.stepfun.com/user-center/billing) (deducted ¥ per call) and the "Step Plan Credit 用量" page does not increment the way you expect.
+
+**Cause:** the plugin is calling the **open-platform endpoint** `https://api.stepfun.com/v1/...`, which bills every call against your cash balance. Step Plan subscribers must use `https://api.stepfun.com/step_plan/v1/...` to draw from the subscription credit quota. Same key, different path, different meter.
+
+**Fix (one line):** the default `STEPFUN_BASE_URL` was changed in v0.1.1 to point at `/step_plan/v1/`. Upgrade:
+
+```bash
+pip install --upgrade hermes-stepfun-imagegen
+```
+
+Or, if you've pinned the plugin path under `~/.hermes/plugins/image_gen/stepfun/`, pull the latest `__init__.py` (search for `STEPFUN_BASE_URL`) and make sure the default is `https://api.stepfun.com/step_plan/v1`. Then restart Hermes:
+
+```bash
+hermes gateway restart
+```
+
+To confirm the fix is live, run a smoke test and inspect the effective base URL:
+
+```bash
+python -c "import importlib.util; m=importlib.import_module('hermes_stepfun_imagegen'); print(m.STEPFUN_BASE_URL)"
+# expected: https://api.stepfun.com/step_plan/v1
+```
+
+**Note on already-billed calls:** StepFun does not refund calls that were billed against your cash balance before you switched endpoints. Going forward, calls go to credit.
+
+**If you actually want cash billing** (e.g. you've used up your Step Plan quota and want to keep going with the per-image rate), explicitly override the base URL:
+
+```bash
+# in ~/.hermes/.env
+STEPFUN_BASE_URL=https://api.stepfun.com/v1
+```
+
+See the official [Step Plan image integration docs](https://platform.stepfun.com/docs/zh/step-plan/integrations/image-api) for details on the two endpoints.
+
+### Diagnostic prompt for your agent
+
+If you ask an AI agent to debug this for you, paste the block below into a fresh chat. It walks the agent through the exact checks that matter:
+
+```text
+You are debugging a Hermes Agent + StepFun image plugin billing issue. The user
+is on a Step Plan subscription, but image generation/editing calls are being
+billed against their cash balance (per-image ¥ deduction) instead of against
+their Step Plan credit quota.
+
+StepFun has TWO independent endpoints that bill DIFFERENTLY for the SAME API
+key:
+
+  - https://api.stepfun.com/v1/...            (open platform -> cash balance)
+  - https://api.stepfun.com/step_plan/v1/...  (Step Plan     -> credit quota)
+
+The plugin in ~/.hermes/plugins/image_gen/stepfun/__init__.py defaults to
+STEPFUN_BASE_URL. The default was historically the cash endpoint, which
+bills subscribers' cash balance. Step Plan subscribers need the /step_plan/v1
+path.
+
+Walk through these checks in order. Do not skip any. After each check, report
+PASS/FAIL with the exact value you saw. When you find the problem, state the
+fix in one sentence.
+
+1. CONFIRM the plugin is the latest version. Read the file
+   ~/.hermes/plugins/image_gen/stepfun/__init__.py and find the line that
+   sets STEPFUN_BASE_URL. Report the literal value.
+
+2. If the default is NOT https://api.stepfun.com/step_plan/v1, the plugin is
+   on the legacy cash endpoint. That is the bug.
+
+3. Check for env override: `grep -E '^STEPFUN_BASE_URL=' ~/.hermes/.env`
+   Report whether the user has set it. If they have, that value wins over
+   the default — verify it points at /step_plan/v1.
+
+4. Check for the install path being a vendored copy under
+   ~/.hermes/plugins/ (not the pip-installed version). If both exist,
+   ~/.hermes/plugins/ wins because Hermes loads it first. Report which
+   one is on disk.
+
+5. Confirm the version that is actually loaded into the running gateway:
+   from outside the gateway, run:
+     python -c "import sys; sys.path.insert(0, '/home/lora/.hermes/hermes-agent');
+                from importlib.machinery import SourceFileLoader;
+                m = SourceFileLoader('p', '/home/lora/.hermes/plugins/image_gen/stepfun/__init__.py').load_module();
+                print(m.STEPFUN_BASE_URL)"
+   The output is what the gateway will use on the next call.
+
+6. Suggest the smallest fix:
+   - If STEPFUN_BASE_URL default is wrong: edit the file, change the default
+     to https://api.stepfun.com/step_plan/v1, then `hermes gateway restart`.
+   - If env override is wrong: edit ~/.hermes/.env, fix STEPFUN_BASE_URL,
+     then `hermes gateway restart`.
+   - If vendored copy is stale: replace it with the latest from the
+     hermes-stepfun-imagegen repo, then `hermes gateway restart`.
+
+7. After applying the fix, do an end-to-end smoke test:
+     STEPFUN_API_KEY=... python -c "import importlib.util;
+       m=importlib.import_module('hermes_stepfun_imagegen');
+       p=m.StepFunImageGenProvider();
+       r=p.generate('a tiny red circle on white', aspect_ratio='square');
+       print(r['success'], r['provider'], r['model'])"
+   Confirm success=True, provider=stepfun.
+
+8. Tell the user: "Going forward, calls will bill against Step Plan credit.
+   Previous calls that billed your cash balance are not refundable by
+   StepFun. If you want to dispute them, contact StepFun support with your
+   account ID and the date range."
+
+Output format: a numbered list of checks with PASS/FAIL and the literal
+value seen. Then ONE recommended fix command. No verbose explanation. The
+user is technical.
+```
+
 ### `STEPFUN_API_KEY not set`
 
 Make sure you've added your API key to `~/.hermes/.env`:

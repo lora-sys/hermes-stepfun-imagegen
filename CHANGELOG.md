@@ -15,6 +15,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Plugin comparison table in README
 - Troubleshooting section in README
 
+## [0.1.1] - 2026-07-10
+
+### Fixed
+- **Billing path bug**: `STEPFUN_BASE_URL` default changed from
+  `https://api.stepfun.com/v1` to `https://api.stepfun.com/step_plan/v1`.
+  Step Plan subscribers using the previous default were being billed
+  against their cash balance (per-image ¥ deduction) instead of against
+  their subscription credit quota. Same key, different path, different
+  meter. The `/step_plan/v1` endpoint is the one used by official
+  Step Plan integrations (OpenClaw, Claude Code, Hermes). Override the
+  env var to fall back to the open-platform endpoint if you want cash
+  billing.
+
 ## [0.1.0] - 2026-07-10
 
 ### Added
@@ -37,5 +50,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Model comparison tables
 - Troubleshooting guide
 
-[Unreleased]: https://github.com/lora-sys/hermes-stepfun-imagegen/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/lora-sys/hermes-stepfun-imagegen/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/lora-sys/hermes-stepfun-imagegen/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/lora-sys/hermes-stepfun-imagegen/releases/tag/v0.1.0
