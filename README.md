@@ -10,7 +10,7 @@ Supports StepFun's image models:
 
 ## Installation
 
-### From PyPI (once published)
+### From PyPI
 
 ```bash
 pip install hermes-stepfun-imagegen
@@ -32,7 +32,7 @@ Copy the plugin directory to your Hermes plugins folder:
 cp -r src/hermes_stepfun_imagegen ~/.hermes/plugins/image_gen/stepfun
 ```
 
-## Configuration
+## Quick Start
 
 ### 1. Set your StepFun API key
 
@@ -40,12 +40,6 @@ Add to `~/.hermes/.env`:
 
 ```bash
 STEPFUN_API_KEY=your-stepfun-api-key
-```
-
-Or export it in your shell:
-
-```bash
-export STEPFUN_API_KEY=your-stepfun-api-key
 ```
 
 ### 2. Enable the plugin
@@ -59,7 +53,7 @@ plugins:
 
 image_gen:
   provider: stepfun
-  model: step-image-edit-2  # optional, defaults to step-image-edit-2
+  model: step-image-edit-2
 ```
 
 ### 3. Restart Hermes
@@ -68,11 +62,9 @@ image_gen:
 hermes gateway restart
 ```
 
-Or restart the Hermes desktop app.
-
 ## Usage
 
-Once configured, the Hermes model can call `image_generate` directly:
+Once configured, just ask the Hermes model to generate images:
 
 **Text-to-image:**
 ```
@@ -83,12 +75,44 @@ Once configured, the Hermes model can call `image_generate` directly:
 ```
 把这张图换成水墨画风格
 ```
-(with an image URL or file)
 
 **Image-to-image:**
 ```
 把这张照片转成梵高风格
 ```
+
+## Screenshots
+
+### Text-to-Image Examples
+
+**Prompt:** "A cute cat astronaut floating in space, digital art"
+![Cat Astronaut](docs/assets/screenshot-cat.png)
+
+**Prompt:** "A majestic dragon perched on a cyberpunk skyscraper at sunset"
+![Cyberpunk Dragon](docs/assets/screenshot-dragon.png)
+
+**Prompt:** "Traditional Chinese ink painting of mountains and rivers"
+![Ink Mountains](docs/assets/screenshot-ink.png)
+
+## Model Comparison
+
+| Model | Speed | Quality | Best For | Edits Supported |
+|-------|-------|---------|----------|-----------------|
+| `step-image-edit-2` | ~1-2s | Good | Fast iteration, text-to-image, editing | ✅ Yes |
+| `step-2x-large` | ~10-20s | High | High-quality output, image-to-image | ✅ Yes |
+| `step-1x-medium` | ~10-20s | Medium | Balanced speed and quality | ✅ Yes |
+
+### vs Other Hermes Image Plugins
+
+| Feature | stepfun | openai | fal | krea |
+|---------|---------|--------|-----|------|
+| Model | step-image-edit-2 | gpt-image-2 | Flux / others | Krea models |
+| Auth | API Key | API Key | API Key | API Key |
+| Speed | 1-2s | 15s-2min | Varies | Varies |
+| Editing | ✅ | ✅ | ✅ | ✅ |
+| Image-to-image | ✅ | ✅ | ✅ | ✅ |
+| Local-only | ❌ | ❌ | ❌ | ❌ |
+| Cost | Paid | Paid | Paid | Paid |
 
 ## Model Selection
 
@@ -102,49 +126,36 @@ image_gen:
 
 Available models:
 
-| Model | Speed | Best for |
-|-------|-------|----------|
-| `step-image-edit-2` | ~1-2s | Fast iteration, text-to-image + editing |
-| `step-2x-large` | ~10-20s | High quality, image-to-image |
-| `step-1x-medium` | ~10-20s | Balanced quality and speed |
+| Model ID | Display Name | Speed | Best For |
+|----------|--------------|-------|----------|
+| `step-image-edit-2` | Step Image Edit 2 | ~1-2s | Fast iteration, text-to-image + editing |
+| `step-2x-large` | Step 2X Large | ~10-20s | High quality, image-to-image |
+| `step-1x-medium` | Step 1X Medium | ~10-20s | Balanced quality and speed |
 
-## Examples
+## Configuration Options
 
-### Text-to-Image
+### Environment Variables
 
-```python
-from hermes_tools import image_generate
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `STEPFUN_API_KEY` | Yes | Your StepFun API key from https://platform.stepfun.com |
+| `STEPFUN_BASE_URL` | No | Override API base URL (default: `https://api.stepfun.com/v1`) |
 
-result = image_generate(
-    prompt="A majestic dragon perched on a cyberpunk skyscraper at sunset",
-    aspect_ratio="square",
-    model="step-image-edit-2",
-    steps=8,
-    seed=42
-)
+### Config.yaml Options
+
+```yaml
+image_gen:
+  provider: stepfun
+  model: step-image-edit-2  # default model
 ```
 
-### Image Editing
+## API Reference
 
-```python
-result = image_generate(
-    prompt="Convert to watercolor painting style",
-    image_url="https://example.com/photo.jpg",
-    model="step-image-edit-2",
-    steps=8
-)
-```
-
-### Image-to-Image
-
-```python
-result = image_generate(
-    prompt="Transform into Van Gogh's Starry Night style",
-    image_url="https://example.com/photo.jpg",
-    model="step-2x-large",
-    source_weight=0.7
-)
-```
+- StepFun 开放平台: https://platform.stepfun.com
+- API 文档: https://platform.stepfun.com/docs/zh/api-reference/images/image
+- Image generation: https://platform.stepfun.com/docs/zh/api-reference/images/image
+- Image editing: https://platform.stepfun.com/docs/zh/api-reference/images/edits
+- Image-to-image: https://platform.stepfun.com/docs/zh/api-reference/images/image2image
 
 ## Troubleshooting
 
@@ -192,15 +203,9 @@ Make sure you're using the correct base URL. The plugin defaults to `https://api
 export STEPFUN_BASE_URL=https://api.stepfun.com/v1
 ```
 
-## API Reference
-
-- StepFun 开放平台: https://platform.stepfun.com
-- API 文档: https://platform.stepfun.com/docs/zh/api-reference/images/image
-- Image generation: https://platform.stepfun.com/docs/zh/api-reference/images/image
-- Image editing: https://platform.stepfun.com/docs/zh/api-reference/images/edits
-- Image-to-image: https://platform.stepfun.com/docs/zh/api-reference/images/image2image
-
 ## Development
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ```bash
 # Clone the repo
@@ -215,9 +220,6 @@ python -m pytest tests/
 
 # Build package
 python -m build
-
-# Upload to PyPI
-twine upload dist/*
 ```
 
 ## License
@@ -231,5 +233,6 @@ lora-sys
 ## Links
 
 - GitHub: https://github.com/lora-sys/hermes-stepfun-imagegen
+- PyPI: https://pypi.org/project/hermes-stepfun-imagegen/
 - Issues: https://github.com/lora-sys/hermes-stepfun-imagegen/issues
 - Hermes Agent: https://github.com/NousResearch/hermes-agent
