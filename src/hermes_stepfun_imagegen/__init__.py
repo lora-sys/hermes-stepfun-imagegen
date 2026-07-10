@@ -12,7 +12,6 @@ API reference: https://platform.stepfun.com/docs/zh/api-reference/images/image
 from __future__ import annotations
 
 import base64
-import io
 import json
 import logging
 import os
@@ -289,7 +288,6 @@ class StepFunImageGenProvider(ImageGenProvider):
             )
 
         model_id = _resolve_model()
-        model_meta = _MODELS.get(model_id, _MODELS[DEFAULT_MODEL])
 
         # Collect source images
         sources: List[str] = []
@@ -527,7 +525,7 @@ class StepFunImageGenProvider(ImageGenProvider):
         model_id: str,
         kwargs: Dict[str, Any],
     ) -> Dict[str, Any]:
-        size = f"1024x1024"
+        size = "1024x1024"
         payload: Dict[str, Any] = {
             "model": model_id,
             "prompt": prompt[:1024],
