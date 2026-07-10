@@ -143,7 +143,7 @@ Available models:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `STEPFUN_API_KEY` | Yes | Your StepFun API key from https://platform.stepfun.com |
-| `STEPFUN_BASE_URL` | No | Override API base URL (default: `https://api.stepfun.com/v1`) |
+| `STEPFUN_BASE_URL` | No | Override API base URL (default: `https://api.stepfun.com/step_plan/v1` for Step Plan subscribers) |
 
 ### Config.yaml Options
 
@@ -201,7 +201,7 @@ tail -f ~/.hermes/logs/errors.log
 
 ### `405 Method Not Allowed` or connection errors
 
-Make sure you're using the correct base URL. The plugin defaults to `https://api.stepfun.com/v1`. If you need to override:
+Make sure you're using the correct base URL. The plugin defaults to `https://api.stepfun.com/step_plan/v1` (Step Plan path — billable against your subscription credit, not your cash balance). If you need the legacy platform endpoint (billed per image, paid in cash), override:
 
 ```bash
 export STEPFUN_BASE_URL=https://api.stepfun.com/v1

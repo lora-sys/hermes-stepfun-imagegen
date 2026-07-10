@@ -30,7 +30,7 @@ from agent.image_gen_provider import (
 
 logger = logging.getLogger(__name__)
 
-STEPFUN_BASE_URL = os.environ.get("STEPFUN_BASE_URL", "https://api.stepfun.com/v1")
+STEPFUN_BASE_URL = os.environ.get("STEPFUN_BASE_URL", "https://api.stepfun.com/step_plan/v1")
 
 # ---------------------------------------------------------------------------
 # Model catalog
