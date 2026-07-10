@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "hermes-stepfun-imagegen"
+version = "0.1.0"
+description = "StepFun image generation backend for Hermes Agent (step-image-edit-2, step-2x-large, step-1x-medium)."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+authors = [
+    {name = "lora-sys"},
+]
+keywords = ["hermes", "hermes-agent", "stepfun", "image-generation", "ai"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/lora-sys/hermes-stepfun-imagegen"
+Repository = "https://github.com/lora-sys/hermes-stepfun-imagegen"
+Issues = "https://github.com/lora-sys/hermes-stepfun-imagegen/issues"
+
+[project.entry-points."hermes_agent.plugins"]
+stepfun-imggen = "hermes_stepfun_imagegen"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+hermes_stepfun_imagegen = ["plugin.yaml"]

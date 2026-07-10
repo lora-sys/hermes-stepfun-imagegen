@@ -1,0 +1,7 @@
+name: stepfun
+version: 1.0.0
+description: "StepFun image generation backend (step-image-edit-2, step-2x-large, step-1x-medium). Supports text-to-image, image editing, and image-to-image."
+author: NousResearch
+kind: backend
+requires_env:
+  - STEPFUN_API_KEY
