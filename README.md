@@ -8,6 +8,10 @@ Supports StepFun's image models:
 - `step-2x-large` — high-quality text-to-image / image-to-image
 - `step-1x-medium` — balanced quality and speed
 
+## Demo
+
+![Demo](docs/assets/demo-optimized.gif)
+
 ## Installation
 
 ### From PyPI
