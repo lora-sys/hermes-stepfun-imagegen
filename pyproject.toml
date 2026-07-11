@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hermes-stepfun-imagegen"
-version = "0.1.1"
+version = "0.2.0"
 description = "StepFun image generation backend for Hermes Agent (step-image-edit-2, step-2x-large, step-1x-medium)."
 readme = "README.md"
 license = {text = "MIT"}
@@ -37,5 +37,5 @@ image-gen-chain = "hermes_stepfun_imagegen.chain"
 where = ["src"]
 
 [tool.setuptools.package-data]
-hermes_stepfun_imagegen = ["plugin.yaml"]
-hermes_stepfun_imagegen.chain = ["plugin.yaml"]
+"hermes_stepfun_imagegen" = ["plugin.yaml"]
+"hermes_stepfun_imagegen.chain" = ["plugin.yaml"]
