@@ -33,8 +33,8 @@ Issues = "https://github.com/lora-sys/hermes-stepfun-imagegen/issues"
 stepfun-imggen = "hermes_stepfun_imagegen"
 image-gen-chain = "hermes_stepfun_imagegen.chain"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.setuptools]
+packages.find = {where = ["src"]}
 
 [tool.setuptools.package-data]
 "hermes_stepfun_imagegen" = ["plugin.yaml"]

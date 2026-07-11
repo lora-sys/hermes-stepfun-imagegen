@@ -14,7 +14,6 @@ Usage:
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any, Dict, List, Optional
 
 from agent.image_gen_provider import (
@@ -23,7 +22,6 @@ from agent.image_gen_provider import (
     error_response,
     normalize_reference_images,
     resolve_aspect_ratio,
-    success_response,
 )
 
 logger = logging.getLogger(__name__)
