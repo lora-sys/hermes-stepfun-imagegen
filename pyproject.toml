@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hermes-stepfun-imagegen"
-version = "0.2.1"
+version = "0.2.2"
 description = "StepFun image generation backend for Hermes Agent (step-image-edit-2, step-2x-large, step-1x-medium)."
 readme = "README.md"
 license = {text = "MIT"}
