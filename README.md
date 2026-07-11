@@ -32,44 +32,18 @@ cd hermes-stepfun-imagegen
 pip install -e .
 ```
 
-### Manual install
+### Manual / editable install
 
-Copy the plugin directory to your Hermes plugins folder:
+Install the package in editable mode and enable the plugin entry point:
 
 ```bash
-cp -r src/hermes_stepfun_imagegen ~/.hermes/plugins/image_gen/stepfun
+git clone https://github.com/lora-sys/hermes-stepfun-imagegen.git
+cd hermes-stepfun-imagegen
+pip install -e .
 ```
 
-## Fallback Chain
+Then enable `stepfun-imggen` in `config.yaml`.
 
-This package also ships a built-in fallback chain provider: `image-gen-chain`.
-
-Priority:
-
-1. `stepfun` — use this plugin first
-2. `minimax` — fall back if StepFun is unavailable
-3. `pollinations` — free anonymous fallback when the paid backends are not configured or fail
-
-### Why use the chain?
-
-- You keep StepFun as the default quality tier.
-- You still get outputs when StepFun is down, quota is exhausted, or the API key is missing.
-- The free Pollinations backend removes the single point of failure without requiring another paid account.
-
-### Setup
-
-```yaml
-plugins:
-  enabled:
-    - stepfun-imggen
-    - image-gen-chain
-
-image_gen:
-  provider: image-gen-chain
-  model: step-image-edit-2
-```
-
-No extra env vars are required for the free Pollinations tier. Keep `STEPFUN_API_KEY` set for the first hop.
 
 ## Quick Start
 
@@ -134,17 +108,23 @@ Once configured, just ask the Hermes model to generate images:
 **Prompt:** "Traditional Chinese ink painting of mountains and rivers"
 ![Ink Mountains](docs/assets/screenshot-ink.png)
 
-## Fallback Chain Usage
+## Fallback Chain
 
-The bundled `image-gen-chain` provider tries backends in order and returns the first successful result.
+This package also ships a built-in fallback chain provider: `image-gen-chain`.
 
-Supported fallback order:
+Priority:
 
-1. `stepfun`
-2. `minimax`
-3. `pollinations`
+1. `stepfun` — use this plugin first
+2. `minimax` — fall back if StepFun is unavailable
+3. `pollinations` — free anonymous fallback when the paid backends are not configured or fail
 
-### Example config
+### Why use the chain?
+
+- You keep StepFun as the default quality tier.
+- You still get outputs when StepFun is down, quota is exhausted, or the API key is missing.
+- The free Pollinations backend removes the single point of failure without requiring another paid account.
+
+### Setup
 
 ```yaml
 plugins:
@@ -157,7 +137,9 @@ image_gen:
   model: step-image-edit-2
 ```
 
-### Behavior notes
+No extra env vars are required for the free Pollinations tier. Keep `STEPFUN_API_KEY` set for the first hop.
+
+### Behavior
 
 - The chain only falls back on provider errors, auth issues, or missing credentials.
 - Successful generations include `extra.chain.tried` and `extra.chain.succeeded` in the tool result.
@@ -383,6 +365,10 @@ Make sure you're using the correct base URL. The plugin defaults to `https://api
 export STEPFUN_BASE_URL=https://api.stepfun.com/v1
 ```
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history and migration notes.
+
 ## Development
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
@@ -396,10 +382,16 @@ cd hermes-stepfun-imagegen
 pip install -e .
 
 # Run tests
-python -m pytest tests/
+python -m pytest tests/ -v --tb=short
+
+# Lint
+ruff check src/ tests/
 
 # Build package
 python -m build
+
+# Verify package metadata
+twine check dist/*
 ```
 
 ## License
