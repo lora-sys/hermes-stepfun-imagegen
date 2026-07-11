@@ -1,0 +1,6 @@
+name: image-gen-chain
+version: 1.0.0
+description: "Image generation fallback chain: StepFun -> MiniMax -> Pollinations"
+author: user
+kind: backend
+requires_env: []

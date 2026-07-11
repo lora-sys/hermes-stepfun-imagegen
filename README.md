@@ -1,5 +1,9 @@
 # Hermes StepFun ImageGen
 
+[![PyPI](https://img.shields.io/pypi/v/hermes-stepfun-imagegen)](https://pypi.org/project/hermes-stepfun-imagegen/)
+[![Python](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
+
+
 StepFun image generation backend for [Hermes Agent](https://github.com/NousResearch/hermes-agent).
 
 Supports StepFun's image models:
@@ -36,7 +40,39 @@ Copy the plugin directory to your Hermes plugins folder:
 cp -r src/hermes_stepfun_imagegen ~/.hermes/plugins/image_gen/stepfun
 ```
 
+## Fallback Chain
+
+This package also ships a built-in fallback chain provider: `image-gen-chain`.
+
+Priority:
+
+1. `stepfun` — use this plugin first
+2. `minimax` — fall back if StepFun is unavailable
+3. `pollinations` — free anonymous fallback when the paid backends are not configured or fail
+
+### Why use the chain?
+
+- You keep StepFun as the default quality tier.
+- You still get outputs when StepFun is down, quota is exhausted, or the API key is missing.
+- The free Pollinations backend removes the single point of failure without requiring another paid account.
+
+### Setup
+
+```yaml
+plugins:
+  enabled:
+    - stepfun-imggen
+    - image-gen-chain
+
+image_gen:
+  provider: image-gen-chain
+  model: step-image-edit-2
+```
+
+No extra env vars are required for the free Pollinations tier. Keep `STEPFUN_API_KEY` set for the first hop.
+
 ## Quick Start
+
 
 ### 1. Set your StepFun API key
 
@@ -98,6 +134,35 @@ Once configured, just ask the Hermes model to generate images:
 **Prompt:** "Traditional Chinese ink painting of mountains and rivers"
 ![Ink Mountains](docs/assets/screenshot-ink.png)
 
+## Fallback Chain Usage
+
+The bundled `image-gen-chain` provider tries backends in order and returns the first successful result.
+
+Supported fallback order:
+
+1. `stepfun`
+2. `minimax`
+3. `pollinations`
+
+### Example config
+
+```yaml
+plugins:
+  enabled:
+    - stepfun-imggen
+    - image-gen-chain
+
+image_gen:
+  provider: image-gen-chain
+  model: step-image-edit-2
+```
+
+### Behavior notes
+
+- The chain only falls back on provider errors, auth issues, or missing credentials.
+- Successful generations include `extra.chain.tried` and `extra.chain.succeeded` in the tool result.
+- Pollinations is used as the last resort because it is free but slower and lower fidelity than StepFun or MiniMax.
+
 ## Model Comparison
 
 | Model | Speed | Quality | Best For | Edits Supported |
@@ -108,15 +173,15 @@ Once configured, just ask the Hermes model to generate images:
 
 ### vs Other Hermes Image Plugins
 
-| Feature | stepfun | openai | fal | krea |
-|---------|---------|--------|-----|------|
-| Model | step-image-edit-2 | gpt-image-2 | Flux / others | Krea models |
-| Auth | API Key | API Key | API Key | API Key |
-| Speed | 1-2s | 15s-2min | Varies | Varies |
-| Editing | ✅ | ✅ | ✅ | ✅ |
-| Image-to-image | ✅ | ✅ | ✅ | ✅ |
-| Local-only | ❌ | ❌ | ❌ | ❌ |
-| Cost | Paid | Paid | Paid | Paid |
+| Feature | stepfun | openai | fal | krea | chain |
+|---------|---------|--------|-----|------|-------|
+| Model | step-image-edit-2 | gpt-image-2 | Flux / others | Krea models | stepfun -> minimax -> pollinations |
+| Auth | API Key | API Key | API Key | API Key | mixed; last hop is free |
+| Speed | 1-2s | 15s-2min | Varies | Varies | varies by hop |
+| Editing | ✅ | ✅ | ✅ | ✅ | ✅ when available |
+| Image-to-image | ✅ | ✅ | ✅ | ✅ | ✅ when available |
+| Local-only | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Cost | Paid | Paid | Paid | Paid | paid + free fallback |
 
 ## Model Selection
 
@@ -291,13 +356,13 @@ Check that the plugin is enabled in `config.yaml`:
 ```yaml
 plugins:
   enabled:
-    - image_gen/stepfun
+    - stepfun-imggen
 ```
 
-And verify the plugin directory exists:
+And verify the pip package is installed:
 
 ```bash
-ls ~/.hermes/plugins/image_gen/stepfun/
+python -c "import hermes_stepfun_imagegen; print(hermes_stepfun_imagegen.__file__)"
 ```
 
 ### Image generation fails
