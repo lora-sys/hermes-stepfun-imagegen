@@ -175,7 +175,7 @@ class TestCLI:
         cmd = (
             "import sys, runpy; "
             "sys.path.insert(0, " + repr(str(SRC_DIR)) + "); "
-            "ns = runpy.run_path(" + repr(str(SRC_DIR / "setup.py")) + "); "
+            "ns = runpy.run_path(" + repr(str(SRC_DIR / "hermes_stepfun_imagegen" / "setup.py")) + "); "
             "sys.exit(ns['main'](sys.argv[1:]))"
         )
         return subprocess.run(
