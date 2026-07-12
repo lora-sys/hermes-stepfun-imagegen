@@ -166,22 +166,20 @@ class TestApplyUninstall:
 
 class TestCLI:
     def _run(self, *args: str) -> subprocess.CompletedProcess:
-        # Drive the helper directly via `python -c` instead of `python -m`.
-        # `python -m hermes_stepfun_imagegen.setup` first imports the package,
-        # which executes `hermes_stepfun_imagegen/__init__.py`. That file
-        # `from agent.image_gen_provider import ...` at module level and
-        # crashes when imported outside a running hermes-agent process
-        # (CI runners don't have the agent installed). `setup.py` itself
-        # has no agent import so importing it directly stays faithful to
-        # what the `hermes-stepfun-setup` console_script entry point does
-        # on a user machine.
+        # Load setup.py as a top-level module rather than as a submodule of
+        # hermes_stepfun_imagegen. Why: `from hermes_stepfun_imagegen.setup`
+        # triggers the package's top-level `__init__.py`, which
+        # `from agent.image_gen_provider import ...` at module load and
+        # crashes in CI (no agent package installed). Loading setup.py
+        # directly via runpy avoids that import chain entirely.
         cmd = (
-            "import sys; sys.path.insert(0, " + repr(str(SRC_DIR)) + "); "
-            "from hermes_stepfun_imagegen.setup import main; "
-            "sys.exit(main(" + repr(list(args)) + "))"
+            "import sys, runpy; "
+            "sys.path.insert(0, " + repr(str(SRC_DIR)) + "); "
+            "ns = runpy.run_path(" + repr(str(SRC_DIR / "setup.py")) + "); "
+            "sys.exit(ns['main'](sys.argv[1:]))"
         )
         return subprocess.run(
-            [sys.executable, "-c", cmd],
+            [sys.executable, "-c", cmd, *args],
             capture_output=True,
             text=True,
             env={**os.environ, "PYTHONPATH": str(SRC_DIR)},
