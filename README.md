@@ -21,7 +21,30 @@ Supports StepFun's image models:
 ### From PyPI
 
 ```bash
-pip install hermes-stepfun-imagegen
+pip install hermes-stepfun-imagegen[setup]   # [setup] pulls PyYAML for the setup helper
+hermes-stepfun-setup                         # writes plugins.enabled + provider blocks
+hermes gateway restart                       # pick up the new config
+```
+
+The package registers two entry points with the `hermes_agent.plugins` group
+(`stepfun-imggen` and `image-gen-chain`). Hermes auto-discovers them on
+next gateway start; **but the loader only enables plugins that are listed in
+`plugins.enabled` in `~/.hermes/config.yaml`**, so the `hermes-stepfun-setup`
+one-shot is required to wire the names up. It's idempotent — re-running on
+an already-configured file is a no-op.
+
+If you'd rather do it manually:
+
+```bash
+hermes plugins enable stepfun-imggen image-gen-chain
+```
+
+To use the **fallback chain** instead of the standalone StepFun backend
+(StepFun → MiniMax → Pollinations, useful when STEPFUN_API_KEY runs out of
+credits or rate-limits):
+
+```bash
+hermes-stepfun-setup --provider image-gen-chain --force-provider
 ```
 
 ### From source
@@ -29,20 +52,25 @@ pip install hermes-stepfun-imagegen
 ```bash
 git clone https://github.com/lora-sys/hermes-stepfun-imagegen.git
 cd hermes-stepfun-imagegen
-pip install -e .
+pip install -e ".[setup]"
+hermes-stepfun-setup
 ```
 
-### Manual / editable install
-
-Install the package in editable mode and enable the plugin entry point:
+### Manual install (no pip)
 
 ```bash
-git clone https://github.com/lora-sys/hermes-stepfun-imagegen.git
-cd hermes-stepfun-imagegen
-pip install -e .
+mkdir -p ~/.hermes/plugins/image_gen/{stepfun,image-gen-chain}
+cp -r src/hermes_stepfun_imagegen/plugin.yaml ~/.hermes/plugins/image_gen/stepfun/plugin.yaml
+# ... copy __init__.py too
+hermes plugins enable image_gen/stepfun image_gen/image-gen-chain
 ```
 
-Then enable `stepfun-imggen` in `config.yaml`.
+Note the **path-derived keys** (`image_gen/stepfun`, `image_gen/image-gen-chain`)
+for the manual install — those match the bundled layout that the directory
+scanner walks. The pip-installed entry-point plugins use the bare entry-point
+name (`stepfun-imggen`, `image-gen-chain`). They're not interchangeable; pick
+the row that matches your install method. `hermes plugins enable` will tell
+you which keys are valid for your environment.
 
 
 ## Quick Start
@@ -58,22 +86,42 @@ STEPFUN_API_KEY=your-stepfun-api-key
 
 ### 2. Enable the plugin
 
-Add to `~/.hermes/config.yaml`:
+The `hermes-stepfun-setup` one-shot (from the install step above) writes
+this block for you. If you'd rather hand-edit, the equivalent is:
 
 ```yaml
 plugins:
   enabled:
-    - image_gen/stepfun
+    - stepfun-imggen            # pip entry-point name (NOT image_gen/stepfun — that's the manual-install key)
+    - image-gen-chain
+    # ... other plugins
 
 image_gen:
-  provider: stepfun
-  model: step-image-edit-2
+  provider: stepfun             # or image-gen-chain for the fallback chain
+  stepfun:
+    model: step-image-edit-2
 ```
+
+**Why `stepfun-imggen` instead of `image_gen/stepfun`?** The pip-installed
+entry point declares its key as `stepfun-imggen` (the entry-point name).
+The manual `~/.hermes/plugins/image_gen/stepfun/` layout declares its key
+as `image_gen/stepfun` (path-derived). The two layouts are not
+interchangeable — pick whichever matches your install method. `hermes
+plugins list` shows the right key for whatever is installed.
 
 ### 3. Restart Hermes
 
 ```bash
 hermes gateway restart
+```
+
+### Verify the setup
+
+```bash
+hermes plugins list --json | python3 -c "import sys, json; print([p['name'] for p in json.load(sys.stdin) if 'stepfun' in p['name'] or 'chain' in p['name']])"
+# Expect: ['image-gen-chain', 'stepfun-imggen']
+hermes-stepfun-setup --check
+# Expect: OK  /home/lora/.hermes/config.yaml
 ```
 
 ## Usage
@@ -364,6 +412,25 @@ Make sure you're using the correct base URL. The plugin defaults to `https://api
 ```bash
 export STEPFUN_BASE_URL=https://api.stepfun.com/v1
 ```
+
+### Plugin not loading
+
+Run `hermes-stepfun-setup --check` — it'll tell you exactly what's missing
+from `plugins.enabled`.
+
+```bash
+hermes plugins list --json | python3 -c "import sys, json; print([p['name'] for p in json.load(sys.stdin) if 'stepfun' in p['name'] or 'chain' in p['name']])"
+# Expect: ['image-gen-chain', 'stepfun-imggen']
+```
+
+If those names show up but the plugin still doesn't load, run
+`hermes-stepfun-setup` to wire them into `plugins.enabled`.
+
+> Historical note: the loader's entry-point branch sets `key=ep.name` and
+> `kind="standalone"`, so writing `plugins.enabled: [image_gen/stepfun]`
+> (the path-derived key from the manual-install layout) does NOT match an
+> entry-point-installed plugin. Use the entry-point name (`stepfun-imggen`)
+> instead. `hermes plugins list` will print the exact key to use.
 
 ## Changelog
 

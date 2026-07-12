@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hermes-stepfun-imagegen"
-version = "0.2.2"
-description = "StepFun image generation backend for Hermes Agent (step-image-edit-2, step-2x-large, step-1x-medium)."
+version = "0.3.0"
+description = "StepFun image generation backend for Hermes Agent (step-image-edit-2, step-2x-large, step-1x-medium). Includes image-gen-chain (StepFun -> MiniMax -> Pollinations fallback). Install: pip install hermes-stepfun-imagegen && hermes-stepfun-setup."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.11"
@@ -32,6 +32,17 @@ Issues = "https://github.com/lora-sys/hermes-stepfun-imagegen/issues"
 [project.entry-points."hermes_agent.plugins"]
 stepfun-imggen = "hermes_stepfun_imagegen"
 image-gen-chain = "hermes_stepfun_imagegen.chain"
+
+[project.scripts]
+# Post-install one-shot helper: registers the entry-point names in
+# ~/.hermes/config.yaml so the loader picks them up. See setup.py docstring
+# for the why (loader uses key=ep.name for entry-points, so the path-derived
+# `image_gen/stepfun` you may see in the bundled layout does NOT match).
+hermes-stepfun-setup = "hermes_stepfun_imagegen.setup:main"
+
+[project.optional-dependencies]
+setup = ["pyyaml>=6.0"]
+test = ["pytest>=7", "pytest-cov", "pyyaml>=6.0"]
 
 [tool.setuptools]
 packages.find = {where = ["src"]}
